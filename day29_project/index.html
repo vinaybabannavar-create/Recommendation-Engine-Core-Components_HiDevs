@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f6f2" />
+    <title>Recommendation Lab | HiDevs Day 29</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f4f6f2;
+        --white: #ffffff;
+        --ink: #192622;
+        --muted: #6c7974;
+        --line: #dfe6e0;
+        --forest: #153a32;
+        --forest-soft: #244d43;
+        --mint: #b9edc9;
+        --acid: #d8f279;
+        --coral: #ee785e;
+        --blue: #aac9ef;
+        --shadow: 0 16px 38px rgb(25 38 34 / 7%);
+        font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        color: var(--ink);
+        background-color: var(--paper);
+        background-image: radial-gradient(#dce4dc 0.7px, transparent 0.7px);
+        background-size: 18px 18px;
+      }
+
+      button, select, input { font: inherit; }
+      .shell {
+        display: grid;
+        grid-template-columns: 272px minmax(0, 1fr);
+        width: min(1440px, 100%);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: rgb(244 246 242 / 92%);
+      }
+
+      .rail {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        padding: 27px 22px 20px;
+        color: #f2f8f3;
+        background: var(--forest);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 0 5px 30px;
+        border-bottom: 1px solid rgb(255 255 255 / 14%);
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 35px;
+        height: 35px;
+        place-items: center;
+        border-radius: 11px;
+        color: var(--forest);
+        background: var(--acid);
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .brand-name { font-size: 14px; font-weight: 800; }
+      .brand-subtitle {
+        margin-top: 2px;
+        color: #a9c1b5;
+        font-family: "DM Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .rail-section { padding-top: 27px; }
+      .section-kicker, .eyebrow {
+        color: #9eb9aa;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .rail h2 {
+        margin: 8px 0 21px;
+        font-size: 19px;
+        font-weight: 700;
+      }
+
+      .field { display: grid; gap: 8px; margin: 0 0 21px; }
+      .field label {
+        color: #bdd0c5;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .field select {
+        width: 100%;
+        min-height: 42px;
+        padding: 0 11px;
+        border: 1px solid rgb(255 255 255 / 17%);
+        border-radius: 7px;
+        outline: none;
+        color: #f5faf6;
+        background: #20483e;
+        font-size: 12px;
+      }
+
+      .field select:focus-visible, .field input:focus-visible, button:focus-visible {
+        outline: 2px solid var(--acid);
+        outline-offset: 2px;
+      }
+
+      .range-line { display: flex; align-items: center; gap: 10px; }
+      .field input[type="range"] { width: 100%; accent-color: var(--acid); }
+      .range-value {
+        min-width: 25px;
+        color: var(--acid);
+        font-family: "DM Mono", monospace;
+        font-size: 12px;
+        text-align: right;
+      }
+
+      .update-button {
+        width: 100%;
+        min-height: 43px;
+        border: 0;
+        border-radius: 7px;
+        color: var(--forest);
+        background: var(--acid);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 800;
+        transition: background 150ms ease, transform 150ms ease;
+      }
+      .update-button:hover { transform: translateY(-1px); background: #e3fa98; }
+
+      .signal-note {
+        margin-top: auto;
+        padding: 15px 14px;
+        border: 1px solid rgb(255 255 255 / 13%);
+        border-radius: 8px;
+        background: rgb(255 255 255 / 5%);
+      }
+      .signal-note strong { display: block; margin-bottom: 7px; font-size: 11px; }
+      .signal-note p { margin: 0; color: #b5cabe; font-size: 10px; line-height: 1.65; }
+      .rail-foot {
+        padding: 18px 4px 0;
+        color: #8eaa9b;
+        font-family: "DM Mono", monospace;
+        font-size: 9px;
+      }
+
+      main { min-width: 0; padding: 30px clamp(22px, 4vw, 58px) 50px; }
+      .topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .topline .eyebrow { color: var(--muted); }
+      .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+      }
+      .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #47ad72; }
+
+      .page-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 30px 0 23px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(26px, 3vw, 34px);
+        font-weight: 800;
+        line-height: 1.15;
+      }
+      .subheading { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+      .data-stamp {
+        flex: 0 0 auto;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: #586760;
+        background: var(--white);
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+      }
+
+      .overview {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-bottom: 28px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--white);
+        box-shadow: var(--shadow);
+      }
+      .stat { padding: 15px 19px 16px; }
+      .stat + .stat { border-left: 1px solid var(--line); }
+      .stat-label { color: var(--muted); font-size: 10px; font-weight: 600; }
+      .stat-value { margin-top: 5px; font-size: 23px; font-weight: 800; }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 250px;
+        gap: 27px;
+        align-items: start;
+      }
+      .results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 13px;
+        border-bottom: 1px solid var(--line);
+      }
+      .results-header h2, .evaluation h2 { margin: 0; font-size: 15px; font-weight: 800; }
+      .result-count {
+        color: var(--muted);
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+      }
+      .interest-line {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px 0 15px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.7;
+      }
+      .interest-label { flex: 0 0 auto; color: var(--ink); font-weight: 800; }
+      .interest-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+      .interest-tag, .item-tag {
+        padding: 3px 7px;
+        border-radius: 4px;
+        color: #31544a;
+        background: #e6f2e8;
+        font-size: 9px;
+        line-height: 1.4;
+      }
+
+      .recommendations { display: grid; gap: 8px; }
+      .recommendation {
+        display: grid;
+        grid-template-columns: 37px minmax(0, 1fr) 93px;
+        gap: 13px;
+        align-items: center;
+        min-height: 91px;
+        padding: 13px 15px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--white);
+        animation: rise 280ms ease both;
+      }
+      .rank {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border-radius: 9px;
+        color: #31544a;
+        background: #e7f3e9;
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+      }
+      .recommendation:nth-child(3n + 2) .rank { color: #735440; background: #f8e8dd; }
+      .recommendation:nth-child(3n) .rank { color: #365b86; background: #e5edf8; }
+      .item-title { margin: 0; font-size: 12px; font-weight: 800; line-height: 1.45; }
+      .item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 5px; }
+      .category { color: var(--muted); font-size: 9px; }
+      .item-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+      .item-tag { padding: 2px 6px; font-size: 8px; }
+      .item-reason { margin: 6px 0 0; color: #65746d; font-size: 9px; line-height: 1.45; }
+      .score-box { text-align: right; }
+      .score-number { font-family: "DM Mono", monospace; font-size: 15px; font-weight: 500; }
+      .score-caption { margin-top: 3px; color: var(--muted); font-size: 8px; }
+      .score-track { height: 4px; margin-top: 8px; overflow: hidden; border-radius: 4px; background: #e8ede8; }
+      .score-fill { height: 100%; border-radius: inherit; background: var(--coral); }
+      .empty-state {
+        padding: 38px 20px;
+        border: 1px dashed #cbd6cd;
+        border-radius: 8px;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .evaluation {
+        padding: 16px 16px 15px;
+        border: 1px solid #d4e1d6;
+        border-radius: 8px;
+        background: #eaf2e9;
+      }
+      .evaluation-kicker {
+        margin-bottom: 8px;
+        color: #648070;
+        font-family: "DM Mono", monospace;
+        font-size: 9px;
+        text-transform: uppercase;
+      }
+      .evaluation h2 { font-size: 13px; }
+      .evaluation-note { margin: 7px 0 15px; color: #65766c; font-size: 9px; line-height: 1.55; }
+      .metric { display: grid; grid-template-columns: 1fr auto; gap: 7px; margin-top: 11px; font-size: 9px; }
+      .metric-name { color: #53665b; }
+      .metric-value { font-family: "DM Mono", monospace; font-size: 10px; }
+      .metric-track { grid-column: 1 / -1; height: 4px; overflow: hidden; border-radius: 3px; background: #d3e1d5; }
+      .metric-fill { height: 100%; border-radius: inherit; background: var(--forest-soft); transition: width 260ms ease; }
+      .footer-line { margin-top: 30px; color: #87938c; font-family: "DM Mono", monospace; font-size: 9px; }
+      .toast { min-height: 16px; margin-top: 10px; color: #f3a38f; font-size: 10px; }
+
+      @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+      @media (max-width: 900px) {
+        .shell { grid-template-columns: 230px minmax(0, 1fr); }
+        main { padding-right: 25px; padding-left: 25px; }
+        .content-grid { grid-template-columns: minmax(0, 1fr); }
+        .evaluation { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 15px; }
+        .evaluation-kicker, .evaluation h2, .evaluation-note { grid-column: 1 / -1; }
+        .metric { align-content: start; }
+      }
+      @media (max-width: 620px) {
+        .shell { display: block; }
+        .rail { min-height: auto; padding: 15px 17px 16px; }
+        .brand { padding: 0 2px 13px; }
+        .rail-section { padding-top: 15px; }
+        .rail h2 { margin: 4px 0 12px; font-size: 16px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+        .field { margin-bottom: 11px; }
+        .field label { font-size: 10px; }
+        .field select { min-height: 38px; }
+        .field-limit, .update-button { grid-column: 1 / -1; }
+        .update-button { min-height: 38px; }
+        .signal-note, .rail-foot { display: none; }
+        main { padding: 19px 16px 32px; }
+        .page-heading { align-items: flex-start; padding: 22px 0 17px; }
+        h1 { font-size: 25px; }
+        .subheading { max-width: 230px; line-height: 1.5; }
+        .data-stamp { padding: 7px; font-size: 8px; }
+        .overview { margin-bottom: 21px; }
+        .stat { padding: 12px 10px; }
+        .stat-value { font-size: 20px; }
+        .stat-label { font-size: 8px; }
+        .content-grid { gap: 20px; }
+        .recommendation { grid-template-columns: 30px minmax(0, 1fr) 65px; gap: 9px; padding: 11px 10px; }
+        .rank { width: 29px; height: 29px; }
+        .item-title { font-size: 11px; }
+        .score-number { font-size: 13px; }
+        .evaluation { grid-template-columns: 1fr; }
+        .evaluation-kicker, .evaluation h2, .evaluation-note { grid-column: auto; }
+        .metric { grid-template-columns: 1fr auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">R</div>
+          <div>
+            <div class="brand-name">HiDevs · Day 29</div>
+            <div class="brand-subtitle">Core components</div>
+          </div>
+        </div>
+        <section class="rail-section" aria-labelledby="controls-title">
+          <div class="section-kicker">Recommendation setup</div>
+          <h2 id="controls-title">Workspace</h2>
+          <form id="controls" class="controls">
+            <div class="field">
+              <label for="user-select">User profile</label>
+              <select id="user-select" name="user_id"></select>
+            </div>
+            <div class="field">
+              <label for="strategy-select">Candidate strategy</label>
+              <select id="strategy-select" name="strategy">
+                <option value="hybrid">Hybrid signals</option>
+                <option value="collaborative">Similar users</option>
+                <option value="content">Topic match</option>
+                <option value="popularity">Most popular</option>
+              </select>
+            </div>
+            <div class="field field-limit">
+              <label for="limit-input">Results to show</label>
+              <div class="range-line">
+                <input id="limit-input" name="limit" type="range" min="3" max="10" value="5" />
+                <output id="limit-value" class="range-value" for="limit-input">5</output>
+              </div>
+            </div>
+            <button class="update-button" type="submit">Update recommendations</button>
+          </form>
+          <div id="toast" class="toast" role="status" aria-live="polite"></div>
+        </section>
+        <div class="signal-note">
+          <strong>Ranking signals</strong>
+          <p>Relevance 60% · Popularity 25% · Recency 15%. Previously rated items are excluded.</p>
+        </div>
+        <div class="rail-foot">IN-MEMORY SAMPLE DATA · NO EXTERNAL SERVICES</div>
+      </aside>
+
+      <main>
+        <div class="topline">
+          <div class="eyebrow">Recommendation systems / Explorer</div>
+          <div class="live-indicator"><span class="live-dot"></span><span id="connection-state">Connecting</span></div>
+        </div>
+        <header class="page-heading">
+          <div>
+            <h1>Recommendation lab</h1>
+            <p class="subheading">Explore ranked items, signals, and offline quality.</p>
+          </div>
+          <div id="date-stamp" class="data-stamp">SAMPLE DATA</div>
+        </header>
+
+        <section class="overview" aria-label="Dataset overview">
+          <div class="stat"><div class="stat-label">Sample users</div><div id="user-count" class="stat-value">--</div></div>
+          <div class="stat"><div class="stat-label">Catalog items</div><div id="item-count" class="stat-value">--</div></div>
+          <div class="stat"><div class="stat-label">Ratings</div><div id="interaction-count" class="stat-value">--</div></div>
+        </section>
+
+        <div class="content-grid">
+          <section aria-labelledby="recommendations-title">
+            <div class="results-header">
+              <h2 id="recommendations-title">Recommended for you</h2>
+              <span id="result-count" class="result-count">Loading</span>
+            </div>
+            <div class="interest-line">
+              <span class="interest-label">Your interests</span>
+              <div id="interest-tags" class="interest-tags"><span>Loading profile</span></div>
+            </div>
+            <div id="recommendations" class="recommendations" aria-live="polite">
+              <div class="empty-state">Loading recommendations</div>
+            </div>
+          </section>
+
+          <aside class="evaluation" aria-labelledby="evaluation-title">
+            <div class="evaluation-kicker">Offline check / top K</div>
+            <h2 id="evaluation-title">Ranking quality</h2>
+            <p id="evaluation-note" class="evaluation-note">Waiting for recommendations.</p>
+            <div class="metric">
+              <span class="metric-name">Precision@k</span><span id="precision-value" class="metric-value">--</span>
+              <div class="metric-track"><div id="precision-fill" class="metric-fill" style="width: 0%"></div></div>
+            </div>
+            <div class="metric">
+              <span class="metric-name">Recall@k</span><span id="recall-value" class="metric-value">--</span>
+              <div class="metric-track"><div id="recall-fill" class="metric-fill" style="width: 0%"></div></div>
+            </div>
+            <div class="metric">
+              <span class="metric-name">NDCG@k</span><span id="ndcg-value" class="metric-value">--</span>
+              <div class="metric-track"><div id="ndcg-fill" class="metric-fill" style="width: 0%"></div></div>
+            </div>
+          </aside>
+        </div>
+        <div class="footer-line">A transparent view of candidate generation, scoring, and evaluation.</div>
+      </main>
+    </div>
+
+    <script>
+      const controls = document.querySelector("#controls");
+      const userSelect = document.querySelector("#user-select");
+      const strategySelect = document.querySelector("#strategy-select");
+      const limitInput = document.querySelector("#limit-input");
+      const limitValue = document.querySelector("#limit-value");
+      const recommendationList = document.querySelector("#recommendations");
+      const toast = document.querySelector("#toast");
+
+      function addTag(container, value, className) {
+        const tag = document.createElement("span");
+        tag.className = className;
+        tag.textContent = value;
+        container.append(tag);
+      }
+
+      function renderInterests(interests) {
+        const container = document.querySelector("#interest-tags");
+        container.replaceChildren();
+        if (!interests.length) {
+          container.textContent = "No profile yet; using popularity signals.";
+          return;
+        }
+        interests.forEach((interest) => addTag(container, interest, "interest-tag"));
+      }
+
+      function renderRecommendations(data) {
+        recommendationList.replaceChildren();
+        document.querySelector("#result-count").textContent =
+          `${data.recommendations.length} ranked · ${data.candidate_count} candidates`;
+        document.querySelector("#recommendations-title").textContent =
+          data.user_id === "new_user" ? "Popular for a new user" : "Recommended for you";
+        renderInterests(data.interests);
+
+        if (!data.recommendations.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-state";
+          empty.textContent = "No candidates for this strategy. Try hybrid or popularity.";
+          recommendationList.append(empty);
+        }
+
+        data.recommendations.forEach((item, index) => {
+          const row = document.createElement("article");
+          row.className = "recommendation";
+          row.style.animationDelay = `${index * 35}ms`;
+
+          const rank = document.createElement("div");
+          rank.className = "rank";
+          rank.textContent = String(index + 1).padStart(2, "0");
+
+          const detail = document.createElement("div");
+          const title = document.createElement("h3");
+          title.className = "item-title";
+          title.textContent = item.title;
+          const meta = document.createElement("div");
+          meta.className = "item-meta";
+          const category = document.createElement("span");
+          category.className = "category";
+          category.textContent = item.category;
+          const tags = document.createElement("span");
+          tags.className = "item-tags";
+          item.tags.slice(0, 3).forEach((tag) => addTag(tags, tag, "item-tag"));
+          meta.append(category, tags);
+          const reason = document.createElement("p");
+          reason.className = "item-reason";
+          reason.textContent = item.reason;
+          detail.append(title, meta, reason);
+
+          const score = document.createElement("div");
+          score.className = "score-box";
+          const scoreNumber = document.createElement("div");
+          scoreNumber.className = "score-number";
+          scoreNumber.textContent = `${Math.round(item.score * 100)}%`;
+          const caption = document.createElement("div");
+          caption.className = "score-caption";
+          caption.textContent = "rank score";
+          const track = document.createElement("div");
+          track.className = "score-track";
+          const fill = document.createElement("div");
+          fill.className = "score-fill";
+          fill.style.width = `${Math.round(item.score * 100)}%`;
+          track.append(fill);
+          score.append(scoreNumber, caption, track);
+          row.append(rank, detail, score);
+          recommendationList.append(row);
+        });
+
+        const metrics = data.evaluation;
+        const metricNote = document.querySelector("#evaluation-note");
+        const metricNames = ["precision", "recall", "ndcg"];
+        if (!metrics) {
+          metricNote.textContent = data.evaluation_note;
+          metricNames.forEach((name) => {
+            document.querySelector(`#${name}-value`).textContent = "N/A";
+            document.querySelector(`#${name}-fill`).style.width = "0%";
+          });
+        } else {
+          metricNote.textContent = `Held-out sample for ${data.user_id}; evaluated at k=${data.limit}.`;
+          metricNames.forEach((name) => {
+            const value = metrics[name];
+            document.querySelector(`#${name}-value`).textContent = value.toFixed(2);
+            document.querySelector(`#${name}-fill`).style.width = `${value * 100}%`;
+          });
+        }
+      }
+
+      async function loadRecommendations() {
+        toast.textContent = "";
+        document.querySelector("#connection-state").textContent = "Updating";
+        const parameters = new URLSearchParams({
+          user_id: userSelect.value,
+          strategy: strategySelect.value,
+          limit: limitInput.value,
+        });
+        try {
+          const response = await fetch(`/api/recommendations?${parameters}`);
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Unable to load recommendations");
+          renderRecommendations(data);
+          document.querySelector("#connection-state").textContent = "Engine connected";
+          document.querySelector("#date-stamp").textContent = `AS OF ${data.as_of}`;
+        } catch (error) {
+          toast.textContent = error.message;
+          document.querySelector("#connection-state").textContent = "Connection error";
+        }
+      }
+
+      async function startDashboard() {
+        try {
+          const response = await fetch("/api/overview");
+          if (!response.ok) throw new Error("Could not load sample data");
+          const overview = await response.json();
+          overview.users.forEach((user) => {
+            const option = document.createElement("option");
+            option.value = user.user_id;
+            option.textContent = user.label;
+            userSelect.append(option);
+          });
+          document.querySelector("#user-count").textContent = overview.user_count;
+          document.querySelector("#item-count").textContent = overview.item_count;
+          document.querySelector("#interaction-count").textContent = overview.interaction_count;
+          await loadRecommendations();
+        } catch (error) {
+          toast.textContent = error.message;
+          document.querySelector("#connection-state").textContent = "Connection error";
+        }
+      }
+
+      controls.addEventListener("submit", (event) => {
+        event.preventDefault();
+        loadRecommendations();
+      });
+      userSelect.addEventListener("change", loadRecommendations);
+      strategySelect.addEventListener("change", loadRecommendations);
+      limitInput.addEventListener("input", () => {
+        limitValue.value = limitInput.value;
+      });
+      limitInput.addEventListener("change", loadRecommendations);
+      startDashboard();
+    </script>
+  </body>
+</html>
